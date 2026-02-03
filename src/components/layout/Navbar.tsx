@@ -15,10 +15,14 @@ export const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const location = useLocation();
 
+  // ✅ NAVBAR ONLY ON LANDING PAGE
+  if (location.pathname !== '/') return null;
+
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 px-4 py-4">
       <div className="container max-w-6xl mx-auto">
         <div className="glass-card px-4 py-3 flex items-center justify-between">
+          
           {/* Logo */}
           <Link to="/" className="flex items-center gap-2">
             <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-accent flex items-center justify-center">
@@ -33,18 +37,14 @@ export const Navbar = () => {
               <Link
                 key={link.path}
                 to={link.path}
-                className={`text-sm font-medium transition-colors hover:text-primary ${
-                  location.pathname === link.path
-                    ? 'text-primary'
-                    : 'text-muted-foreground'
-                }`}
+                className="text-sm font-medium transition-colors hover:text-primary text-muted-foreground"
               >
                 {link.name}
               </Link>
             ))}
           </div>
 
-          {/* CTA Button */}
+          {/* CTA */}
           <div className="hidden md:block">
             <Link to="/onboarding">
               <Button variant="glow" size="sm">
@@ -77,15 +77,12 @@ export const Navbar = () => {
                   key={link.path}
                   to={link.path}
                   onClick={() => setIsOpen(false)}
-                  className={`block py-2 px-3 rounded-lg text-sm font-medium transition-colors hover:bg-white/10 ${
-                    location.pathname === link.path
-                      ? 'text-primary bg-primary/10'
-                      : 'text-muted-foreground'
-                  }`}
+                  className="block py-2 px-3 rounded-lg text-sm font-medium transition-colors hover:bg-white/10 text-muted-foreground"
                 >
                   {link.name}
                 </Link>
               ))}
+
               <Link to="/onboarding" onClick={() => setIsOpen(false)}>
                 <Button variant="glow" size="sm" className="w-full mt-2">
                   Get Started

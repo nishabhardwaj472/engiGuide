@@ -1,262 +1,214 @@
-import { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { useNavigate } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
-import { branches, semesters, goals } from '@/data/mockData';
-import { ArrowRight, ArrowLeft, Check, Sparkles } from 'lucide-react';
-import { Navbar } from '@/components/layout/Navbar';
+import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { useNavigate } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import { ArrowRight, ArrowLeft, Check, Sparkles } from "lucide-react";
 
-const steps = ['Branch', 'Semester', 'Goal'];
+// Steps
+const steps = ["Goal", "Branch", "Semester"];
 
-const PLACEMENT_OPTIONS = [
-  'Software / IT',
-  'Core Engineering',
-  'Data / Analytics',
-  'Product / Management',
+const goals = [
+  { id: "just-pass", label: "Just Pass", description: "Quick help to clear exams" },
+  { id: "cgpa", label: "Decent CGPA", description: "Strong concepts with 8.5+ CGPA" },
+  { id: "placements", label: "Placements", description: "DSA, core & interview prep" },
 ];
 
-const CGPA_OPTIONS = [
-  '6.5 – 7.5',
-  '7.5 – 8.0',
-  '8.0 – 8.5',
-  '8.5+',
+const branches = [
+  "CSE",
+  "ECE",
+  "EE",
+  "ME",
+  "CE",
+  "IT",
+  "CST",
 ];
 
-const MULTI_GOALS = ['placements', 'cgpa'];
+const semesters = ["1", "2", "3", "4", "5", "6", "7", "8"];
 
 const Onboarding = () => {
   const navigate = useNavigate();
 
   const [currentStep, setCurrentStep] = useState(0);
-  const [selectedBranch, setSelectedBranch] = useState<string | null>(null);
-  const [selectedSemester, setSelectedSemester] = useState<number | null>(null);
+  const [goal, setGoal] = useState<string | null>(null);
+  const [branch, setBranch] = useState<string | null>(null);
+  const [semester, setSemester] = useState<string | null>(null);
 
-  const [selectedGoals, setSelectedGoals] = useState<string[]>([]);
-  const [selectedPlacements, setSelectedPlacements] = useState<string[]>([]);
-  const [selectedCgpa, setSelectedCgpa] = useState<string[]>([]);
-
-  const canProceed = () => {
-    if (currentStep === 0) return !!selectedBranch;
-    if (currentStep === 1) return !!selectedSemester;
-
-    if (currentStep === 2) {
-      if (selectedGoals.length === 0) return false;
-      if (selectedGoals.includes('placements') && selectedPlacements.length === 0) return false;
-      if (selectedGoals.includes('cgpa') && selectedCgpa.length === 0) return false;
-      return true;
+  const nextStep = () => {
+  if (currentStep < steps.length - 1) {
+    setCurrentStep((prev) => prev + 1);
+  } else {
+    if (goal === "just-pass") {
+      navigate("/just-pass");
+    } 
+    else if (goal === "cgpa") {
+      navigate("/cgpa-subjects"); // 👈 YOUR CGPA SUBJECT PAGE
+    } 
+    else if (goal === "placements") {
+      navigate("placements");
     }
+  }
+};
 
+
+  const prevStep = () => {
+    setCurrentStep((prev) => prev - 1);
+  };
+
+  const isNextDisabled = () => {
+    if (currentStep === 0) return !goal;
+    if (currentStep === 1) return !branch;
+    if (currentStep === 2) return !semester;
     return false;
   };
 
-  const toggleGoal = (goalId: string) => {
-    const isMulti = MULTI_GOALS.includes(goalId);
-
-    // 🔒 SINGLE SELECT GOALS
-    if (!isMulti) {
-      setSelectedGoals([goalId]);
-      setSelectedPlacements([]);
-      setSelectedCgpa([]);
-      return;
-    }
-
-    // 🔓 MULTI SELECT GOALS (Placements + CGPA)
-    setSelectedGoals((prev) =>
-      prev.includes(goalId)
-        ? prev.filter((g) => g !== goalId)
-        : [...prev, goalId]
-    );
-
-    // Reset sub-options when deselected
-    if (goalId === 'placements' && selectedGoals.includes('placements')) {
-      setSelectedPlacements([]);
-    }
-
-    if (goalId === 'cgpa' && selectedGoals.includes('cgpa')) {
-      setSelectedCgpa([]);
-    }
-  };
-
-  const handleNext = () => {
-    if (currentStep < steps.length - 1) {
-      setCurrentStep((p) => p + 1);
-    } else {
-      navigate('/dashboard');
-    }
-  };
-
-  const handleBack = () => {
-    if (currentStep > 0) setCurrentStep((p) => p - 1);
-  };
-
   return (
-    <div className="min-h-screen">
-      <Navbar />
+    <div className="min-h-screen flex items-center justify-center bg-background px-4">
+      <div className="w-full max-w-3xl">
 
-      <div className="pt-24 pb-12 px-4">
-        <div className="container max-w-3xl mx-auto">
+        {/* Step Indicator */}
+        <div className="flex justify-center mb-10">
+          {steps.map((step, index) => (
+            <div key={step} className="flex items-center">
+              <div
+                className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold
+                ${
+                  index <= currentStep
+                    ? "bg-primary text-white"
+                    : "bg-muted text-muted-foreground"
+                }`}
+              >
+                {index < currentStep ? <Check size={16} /> : index + 1}
+              </div>
+              {index < steps.length - 1 && (
+                <div className="w-10 h-[2px] bg-muted mx-2" />
+              )}
+            </div>
+          ))}
+        </div>
 
-          <div className="mb-10 text-center text-muted-foreground">
-            Step {currentStep + 1} of {steps.length}: Select your {steps[currentStep]}
-          </div>
+        {/* Card */}
+        <div className="bg-card rounded-2xl shadow-lg p-8">
 
           <AnimatePresence mode="wait">
-
-            {/* STEP 1 */}
+            {/* STEP 1 — GOAL */}
             {currentStep === 0 && (
-              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-                <h2 className="text-3xl font-bold text-center mb-8">
-                  Choose your <span className="gradient-text">Branch</span>
+              <motion.div
+                key="goal"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+              >
+                <h2 className="text-2xl font-bold mb-2 flex items-center gap-2">
+                  <Sparkles className="text-primary" /> Choose your goal
                 </h2>
+                <p className="text-muted-foreground mb-6">
+                  We’ll personalize everything for you
+                </p>
 
-                <div className="grid md:grid-cols-2 gap-4">
-                  {branches.map((b) => (
-                    <div
-                      key={b.id}
-                      onClick={() => setSelectedBranch(b.id)}
-                      className={`glass-card p-6 cursor-pointer ${
-                        selectedBranch === b.id
-                          ? 'ring-2 ring-primary glow-primary'
-                          : 'hover:bg-white/5'
+                <div className="grid gap-4">
+                  {goals.map((g) => (
+                    <button
+                      key={g.id}
+                      onClick={() => setGoal(g.id)}
+                      className={`p-4 rounded-xl border text-left transition
+                      ${
+                        goal === g.id
+                          ? "border-primary bg-primary/10"
+                          : "border-muted hover:border-primary/50"
                       }`}
                     >
-                      <h3 className="font-semibold">{b.name}</h3>
-                      <p className="text-sm text-muted-foreground">{b.description}</p>
-                    </div>
+                      <h3 className="font-semibold">{g.label}</h3>
+                      <p className="text-sm text-muted-foreground">
+                        {g.description}
+                      </p>
+                    </button>
                   ))}
                 </div>
               </motion.div>
             )}
 
-            {/* STEP 2 */}
+            {/* STEP 2 — BRANCH */}
             {currentStep === 1 && (
-              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-                <h2 className="text-3xl font-bold text-center mb-8">
-                  Select <span className="gradient-text">Semester</span>
+              <motion.div
+                key="branch"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+              >
+                <h2 className="text-2xl font-bold mb-6">
+                  Select your branch
                 </h2>
 
-                <div className="grid grid-cols-4 gap-4 max-w-md mx-auto">
-                  {semesters.map((s) => (
-                    <div
-                      key={s}
-                      onClick={() => setSelectedSemester(s)}
-                      className={`glass-card p-6 text-center cursor-pointer ${
-                        selectedSemester === s
-                          ? 'ring-2 ring-primary glow-primary'
-                          : 'hover:bg-white/5'
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                  {branches.map((b) => (
+                    <button
+                      key={b}
+                      onClick={() => setBranch(b)}
+                      className={`p-4 rounded-xl border font-medium transition
+                      ${
+                        branch === b
+                          ? "border-primary bg-primary/10"
+                          : "border-muted hover:border-primary/50"
                       }`}
                     >
-                      {s}
-                    </div>
+                      {b}
+                    </button>
                   ))}
                 </div>
               </motion.div>
             )}
 
-            {/* STEP 3 */}
+            {/* STEP 3 — SEMESTER */}
             {currentStep === 2 && (
-              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-                <h2 className="text-3xl font-bold text-center mb-8">
-                  Select your <span className="gradient-text">Goals</span>
+              <motion.div
+                key="semester"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+              >
+                <h2 className="text-2xl font-bold mb-6">
+                  Select semester
                 </h2>
 
-                <div className="space-y-4">
-                  {goals.map((goal) => {
-                    const active = selectedGoals.includes(goal.id);
-
-                    return (
-                      <div
-                        key={goal.id}
-                        onClick={() => toggleGoal(goal.id)}
-                        className={`glass-card p-6 cursor-pointer ${
-                          active ? 'ring-2 ring-primary glow-primary' : 'hover:bg-white/5'
-                        }`}
-                      >
-                        <div className="flex justify-between items-center">
-                          <div>
-                            <h3 className="font-semibold">{goal.name}</h3>
-                            <p className="text-sm text-muted-foreground">
-                              {goal.description}
-                            </p>
-                          </div>
-                          {active && <Check className="text-primary" />}
-                        </div>
-
-                        {goal.id === 'placements' && active && (
-                          <div className="mt-4 flex flex-wrap gap-3">
-                            {PLACEMENT_OPTIONS.map((opt) => (
-                              <button
-                                key={opt}
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  setSelectedPlacements((prev) =>
-                                    prev.includes(opt)
-                                      ? prev.filter((o) => o !== opt)
-                                      : [...prev, opt]
-                                  );
-                                }}
-                                className={`px-4 py-2 rounded-full text-sm ${
-                                  selectedPlacements.includes(opt)
-                                    ? 'bg-primary text-white'
-                                    : 'border text-muted-foreground'
-                                }`}
-                              >
-                                {opt}
-                              </button>
-                            ))}
-                          </div>
-                        )}
-
-                        {goal.id === 'cgpa' && active && (
-                          <div className="mt-4 flex flex-wrap gap-3">
-                            {CGPA_OPTIONS.map((opt) => (
-                              <button
-                                key={opt}
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  setSelectedCgpa((prev) =>
-                                    prev.includes(opt)
-                                      ? prev.filter((c) => c !== opt)
-                                      : [...prev, opt]
-                                  );
-                                }}
-                                className={`px-4 py-2 rounded-full text-sm ${
-                                  selectedCgpa.includes(opt)
-                                    ? 'bg-primary text-white'
-                                    : 'border text-muted-foreground'
-                                }`}
-                              >
-                                {opt}
-                              </button>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-                    );
-                  })}
+                <div className="grid grid-cols-4 gap-4">
+                  {semesters.map((s) => (
+                    <button
+                      key={s}
+                      onClick={() => setSemester(s)}
+                      className={`p-4 rounded-xl border font-medium transition
+                      ${
+                        semester === s
+                          ? "border-primary bg-primary/10"
+                          : "border-muted hover:border-primary/50"
+                      }`}
+                    >
+                      Sem {s}
+                    </button>
+                  ))}
                 </div>
               </motion.div>
             )}
           </AnimatePresence>
 
-          <div className="flex justify-between mt-12">
-            <Button variant="glass" onClick={handleBack} disabled={currentStep === 0}>
-              <ArrowLeft className="w-4 h-4" /> Back
+          {/* Navigation Buttons */}
+          <div className="flex justify-between mt-10">
+            <Button
+              variant="ghost"
+              onClick={prevStep}
+              disabled={currentStep === 0}
+            >
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              Back
             </Button>
 
-            <Button variant="hero" onClick={handleNext} disabled={!canProceed()}>
-              {currentStep === 2 ? (
-                <>
-                  <Sparkles className="w-4 h-4" /> Start My Journey
-                </>
-              ) : (
-                <>
-                  Next <ArrowRight className="w-4 h-4" />
-                </>
-              )}
+            <Button
+              onClick={nextStep}
+              disabled={isNextDisabled()}
+            >
+              {currentStep === steps.length - 1 ? "Finish" : "Next"}
+              <ArrowRight className="ml-2 h-4 w-4" />
             </Button>
           </div>
-
         </div>
       </div>
     </div>
